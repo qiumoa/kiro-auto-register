@@ -17,7 +17,7 @@ on:
 jobs:
   register:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 120  # 2小时超时
     
     steps:
       - name: Checkout code
@@ -27,6 +27,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
       - name: Install Chrome
         uses: browser-actions/setup-chrome@v1
@@ -35,17 +36,23 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install selenium webdriver-manager faker pyyaml requests cbor2
-          pip install undetected-chromedriver || true
+          pip install --upgrade pip
+          pip install selenium webdriver-manager faker pyyaml requests
+          pip install undetected-chromedriver || echo "undetected-chromedriver 安装失败"
 
       - name: Configure for headless
         run: |
+          # 修改配置为无头模式 + Chrome
           sed -i 's/headless: false/headless: true/' config/config.yaml
           sed -i 's/type: "edge"/type: "chrome"/' config/config.yaml
+          cat config/config.yaml | grep -E "headless|type"
 
       - name: Run batch registration
+        env:
+          PROXY_URL: ${{ secrets.PROXY_URL }}
         run: |
           cd src/runners
+          # 使用 echo 模拟交互输入: 次数 + 间隔
           echo -e "${{ inputs.count }}\n${{ inputs.interval }}" | python main.py
 
       - name: Upload accounts
@@ -53,5 +60,15 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: accounts
-          path: accounts.json
+          path: src/runners/accounts.json
+          if-no-files-found: ignore
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: |
+            *.png
+            src/runners/*.png
           if-no-files-found: ignore
