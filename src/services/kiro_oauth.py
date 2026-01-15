@@ -24,6 +24,20 @@ from typing import Optional, Dict, Tuple
 KIRO_WEB_PORTAL = "https://app.kiro.dev"
 KIRO_REDIRECT_URI = "https://app.kiro.dev/signin/oauth"
 
+
+def _take_screenshot(driver, filename: str) -> None:
+    """截图并保存到 screenshots 文件夹"""
+    try:
+        screenshot_dir = "screenshots"
+        if not os.path.exists(screenshot_dir):
+            os.makedirs(screenshot_dir)
+        
+        filepath = os.path.join(screenshot_dir, filename)
+        driver.save_screenshot(filepath)
+        print(f"📸 截图已保存: {filepath}")
+    except Exception as e:
+        print(f"⚠️ 截图失败: {e}")
+
 class KiroOAuthClient:
     """Kiro OAuth 客户端 - 使用 CBOR 协议"""
     
@@ -288,6 +302,9 @@ def perform_kiro_oauth_in_browser(driver, aws_email: str, aws_password: str) -> 
                 return token_result
         
         # Step 3: 等待并填写邮箱 (AWS 登录页面)
+        # 截图：登录页面加载后
+        _take_screenshot(driver, "kiro_oauth_step3_login_page.png")
+        
         try:
             # 等待页面加载
             time.sleep(3)
@@ -351,8 +368,10 @@ def perform_kiro_oauth_in_browser(driver, aws_email: str, aws_password: str) -> 
                 time.sleep(3)
             else:
                 print("⚠️  未找到邮箱输入框")
+                _take_screenshot(driver, "kiro_oauth_step3_no_email_input.png")
         except Exception as e:
             print(f"⚠️  邮箱填写异常 (可能已登录): {e}")
+            _take_screenshot(driver, "kiro_oauth_step3_email_error.png")
         
         # Step 4: 填写密码 (如果需要)
         try:
