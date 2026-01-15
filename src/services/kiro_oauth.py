@@ -288,61 +288,38 @@ def perform_kiro_oauth_in_browser(driver, aws_email: str, aws_password: str) -> 
                 return token_result
         
         # Step 3: 等待并填写邮箱 (AWS 登录页面)
-        # 添加刷新重试逻辑
-        max_refresh_attempts = 3
-        email_input = None
-        
-        for refresh_attempt in range(max_refresh_attempts):
-            try:
-                # 等待页面加载
-                time.sleep(3)
-                
-                # AWS 登录页面使用多种不同的选择器
-                email_selectors = [
-                    "input[placeholder*='username@example']",
-                    "input[placeholder*='example.com']",
-                    "input[name='email']",
-                    "input[type='email']",
-                    "input[type='text']",  # AWS 可能使用 text 类型
-                    "#awsui-input-0",
-                    "input[data-testid='username-input']",
-                    "input[placeholder*='mail']",
-                    "input[placeholder*='Email']",
-                    "//input[@name='email']",
-                    "//input[@type='email']",
-                    "//input[contains(@placeholder, 'example')]",
-                ]
-                
-                for selector in email_selectors:
-                    try:
-                        if selector.startswith("//"):
-                            email_input = driver.find_element(By.XPATH, selector)
-                        else:
-                            email_input = driver.find_element(By.CSS_SELECTOR, selector)
-                        if email_input and email_input.is_displayed():
-                            break
-                        else:
-                            email_input = None
-                    except:
-                        continue
-                
-                if email_input:
-                    break  # 找到了，跳出刷新循环
-                else:
-                    if refresh_attempt < max_refresh_attempts - 1:
-                        print(f"⚠️  未找到邮箱输入框，刷新页面重试 ({refresh_attempt + 1}/{max_refresh_attempts})...")
-                        driver.refresh()
-                        time.sleep(3)
-                    else:
-                        print("⚠️  未找到邮箱输入框，已达到最大重试次数")
-            except Exception as e:
-                print(f"⚠️  查找邮箱输入框异常: {e}")
-                if refresh_attempt < max_refresh_attempts - 1:
-                    print(f"🔄 刷新页面重试 ({refresh_attempt + 1}/{max_refresh_attempts})...")
-                    driver.refresh()
-                    time.sleep(3)
-        
         try:
+            # 等待页面加载
+            time.sleep(3)
+            
+            # AWS 登录页面使用多种不同的选择器
+            email_selectors = [
+                "input[placeholder*='username@example']",
+                "input[placeholder*='example.com']",
+                "input[name='email']",
+                "input[type='email']",
+                "input[type='text']",  # AWS 可能使用 text 类型
+                "#awsui-input-0",
+                "input[data-testid='username-input']",
+                "input[placeholder*='mail']",
+                "input[placeholder*='Email']",
+                "//input[@name='email']",
+                "//input[@type='email']",
+                "//input[contains(@placeholder, 'example')]",
+            ]
+            
+            email_input = None
+            for selector in email_selectors:
+                try:
+                    if selector.startswith("//"):
+                        email_input = driver.find_element(By.XPATH, selector)
+                    else:
+                        email_input = driver.find_element(By.CSS_SELECTOR, selector)
+                    if email_input and email_input.is_displayed():
+                        break
+                except:
+                    continue
+            
             if email_input:
                 email_input.clear()
                 email_input.send_keys(aws_email)
