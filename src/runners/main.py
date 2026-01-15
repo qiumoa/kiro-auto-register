@@ -20,8 +20,8 @@ from helpers.browser_factory import create_driver as factory_create_driver, clea
 from services.kiro_oauth import perform_kiro_oauth_in_browser, KiroOAuthClient
 from services.aws_sso_oidc import perform_aws_sso_oidc_auto
 
-# 截图保存目录 (src 目录) - 已禁用
-# SCREENSHOT_DIR = str(Path(__file__).parent.parent)
+# 截图保存目录 (src 目录)
+SCREENSHOT_DIR = str(Path(__file__).parent.parent)
 
 fake = Faker('en_US')
 
@@ -816,6 +816,8 @@ def run(fixed_account=None):
         # 第六步：设置密码
         print("正在准备设置密码...")
         human_delay(5, 8)  # 等待验证通过后的跳转
+        driver.save_screenshot(os.path.join(SCREENSHOT_DIR, "step6_before_password.png"))
+        print(f"📸 截图已保存: step6_before_password.png")
         print(f"当前页面: {driver.current_url}")
         
         password = generate_strong_password()
@@ -861,6 +863,9 @@ def run(fixed_account=None):
                                     break
                             except: continue
                      except: pass
+                
+                driver.save_screenshot(os.path.join(SCREENSHOT_DIR, "step6_after_password.png"))
+                print(f"📸 截图已保存: step6_after_password.png")
                 
                 # 点击创建/继续
                 human_delay(1, 2)
