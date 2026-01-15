@@ -844,15 +844,12 @@ def _click_button(driver, selectors: list) -> bool:
 
 
 def _take_screenshot(driver, filename: str) -> None:
-    """截图并保存到当前目录"""
+    """截图并保存到 src 目录"""
     import os
     try:
-        # 保存到项目根目录的 screenshots 文件夹
-        screenshot_dir = "screenshots"
-        if not os.path.exists(screenshot_dir):
-            os.makedirs(screenshot_dir)
-        
-        filepath = os.path.join(screenshot_dir, filename)
+        # 保存到 src 目录
+        src_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        filepath = os.path.join(src_dir, filename)
         driver.save_screenshot(filepath)
         print(f"📸 截图已保存: {filepath}")
     except Exception as e:
