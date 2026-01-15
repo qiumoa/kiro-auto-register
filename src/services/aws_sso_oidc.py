@@ -595,20 +595,34 @@ def perform_aws_sso_oidc_auto(
     # 等待登录页面加载
     time.sleep(3)
     
-    # 输入邮箱
+    # 输入邮箱 - 添加刷新重试逻辑
     print(f"📧 输入邮箱: {email}")
     short_wait = WebDriverWait(driver, 5)
     email_input = None
-    try:
-        email_input = short_wait.until(EC.presence_of_element_located((
-            By.CSS_SELECTOR, 
-            "input[placeholder*='example.com'], input[type='email'], input[name='email']"
-        )))
-    except:
+    max_refresh_attempts = 3
+    
+    for refresh_attempt in range(max_refresh_attempts):
         try:
-            email_input = driver.find_element(By.XPATH, "//input[@type='text' or @type='email']")
+            email_input = short_wait.until(EC.presence_of_element_located((
+                By.CSS_SELECTOR, 
+                "input[placeholder*='example.com'], input[type='email'], input[name='email']"
+            )))
         except:
-            pass
+            try:
+                email_input = driver.find_element(By.XPATH, "//input[@type='text' or @type='email']")
+            except:
+                pass
+        
+        if email_input and email_input.is_displayed():
+            break  # 找到了，跳出刷新循环
+        else:
+            email_input = None
+            if refresh_attempt < max_refresh_attempts - 1:
+                print(f"⚠️  未找到邮箱输入框，刷新页面重试 ({refresh_attempt + 1}/{max_refresh_attempts})...")
+                driver.refresh()
+                time.sleep(3)
+            else:
+                print("⚠️  未找到邮箱输入框，已达到最大重试次数")
     
     if not email_input:
         raise Exception("找不到邮箱输入框")
