@@ -26,13 +26,12 @@ KIRO_REDIRECT_URI = "https://app.kiro.dev/signin/oauth"
 
 
 def _take_screenshot(driver, filename: str) -> None:
-    """截图并保存到 screenshots 文件夹"""
+    """截图并保存到 src 目录"""
+    import os
     try:
-        screenshot_dir = "screenshots"
-        if not os.path.exists(screenshot_dir):
-            os.makedirs(screenshot_dir)
-        
-        filepath = os.path.join(screenshot_dir, filename)
+        # 保存到 src 目录
+        src_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        filepath = os.path.join(src_dir, filename)
         driver.save_screenshot(filepath)
         print(f"📸 截图已保存: {filepath}")
     except Exception as e:
